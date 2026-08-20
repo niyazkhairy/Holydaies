@@ -125,3 +125,10 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .avatar.lg { width: 26px; height: 26px; font-size: 13px; }
 .savings { color: var(--green); font-weight: 700; }
 .fadein { animation: fade .2s ease-out; }
+
+/* ---------- fit the device into any viewport ----------
+   `.fit` reserves the SCALED footprint so nothing overflows and no dead
+   space is left below; `.device` is scaled from its top-left corner. */
+.fit { position: relative; flex: 0 0 auto; }
+.fit > .device { transform-origin: top left; position: absolute; top: 0; left: 0; }
+.stage { padding: 12px; }
