@@ -58,11 +58,23 @@ export default function ListDetail() {
         </div>
 
         <div style={{ padding: '18px 16px 6px', display: 'flex', gap: 14, alignItems: 'center' }}>
-          <input className="field" autoFocus value={query} placeholder="Add an item to your list"
-                 onChange={e => setQuery(e.target.value)} style={{ flex: 1, height: 40 }} />
+          <div className="inputwrap" style={{ flex: 1 }}>
+            <input className="field" type="search" autoFocus value={query}
+                   placeholder="Add an item to your list" aria-label="Add an item to your list"
+                   autoComplete="off" spellCheck={false} enterKeyHint="search"
+                   onChange={e => setQuery(e.target.value)} style={{ height: 40 }} />
+            {query && (
+              <button type="button" className="inputclear" aria-label="Clear search"
+                      onClick={() => setQuery('')}>
+                <FigIcon name="close" size={10} color="#fff" />
+              </button>
+            )}
+          </div>
           <button style={{ fontSize: 15 }} onClick={() => { setSearching(false); setQuery(''); }}>Cancel</button>
         </div>
-        <div style={{ padding: '0 16px', fontSize: 11 }}>Enter an item, like “milk” or “coffee”.</div>
+        <div className="inputhint" style={{ padding: '0 16px' }}>
+          Enter an item, like “milk” or “coffee”.
+        </div>
 
         <ul className="scroll" style={{ padding: '12px 0' }}>
           {matches.map(m => (
@@ -152,10 +164,14 @@ export default function ListDetail() {
             Add an item to your list
           </div>
           <button className="field" onClick={() => setSearching(true)}
-                  style={{ textAlign: 'left', color: 'var(--muted)', height: 40 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 10,
+                           textAlign: 'left', color: 'var(--ink-5)', height: 40 }}>
+            <FigIcon name="search" size={16} color="var(--ink-5)" />
             Add an item to your list
           </button>
-          <div style={{ fontSize: 11, margin: '8px 0 2px' }}>Enter an item, like “milk” or “coffee”.</div>
+          <div className="inputhint" style={{ marginBottom: 2 }}>
+            Enter an item, like “milk” or “coffee”.
+          </div>
         </div>
 
         {list.items.length === 0 ? <EmptyState /> : (

@@ -77,18 +77,21 @@ export default function Lists() {
       {creating && (
         <Sheet title="Create a new list" onClose={() => setCreating(false)}>
           <label htmlFor="listname" style={{ fontSize: 13, fontWeight: 700 }}>Enter list name</label>
-          <div style={{ position: 'relative', margin: '10px 0 22px' }}>
+          <div className="inputwrap" style={{ margin: '10px 0 6px' }}>
             <input id="listname" className="field" autoFocus value={name}
-                   placeholder="Enter list name"
+                   placeholder="Enter list name" autoComplete="off" enterKeyHint="done"
+                   aria-describedby="listname-hint"
                    onChange={e => setName(e.target.value)}
                    onKeyDown={e => e.key === 'Enter' && create()} />
             {name && (
-              <button onClick={() => setName('')} aria-label="Clear"
-                style={{ position: 'absolute', right: 12, top: 11, width: 20, height: 20,
-                         borderRadius: 999, background: 'var(--ink-2)', display: 'grid', placeItems: 'center' }}>
+              <button type="button" className="inputclear" aria-label="Clear list name"
+                      onClick={() => setName('')}>
                 <FigIcon name="close" size={10} color="#fff" />
               </button>
             )}
+          </div>
+          <div id="listname-hint" className="inputhint" style={{ marginBottom: 18 }}>
+            Give it a name you'll recognise later, like "Weekly Start".
           </div>
           <button className="btn btn-primary btn-block" disabled={!name.trim()} onClick={create}>Create</button>
         </Sheet>
@@ -143,7 +146,8 @@ function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
           <span style={{ marginLeft: 'auto', fontSize: 12 }}>Est. total ${est.toFixed(2)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
-          <span style={{ fontSize: 9, color: list.pendingFrom ? 'var(--wm-blue)' : 'var(--ink)' }}>
+          {/* one step up the design's ramp (9 -> 11) so it is actually readable */}
+          <span style={{ fontSize: 11, color: list.pendingFrom ? 'var(--wm-blue)' : 'var(--ink)' }}>
             {list.subtitle}
           </span>
           <span className="savings savings-pill" style={{ marginLeft: 'auto', fontSize: 12 }}>

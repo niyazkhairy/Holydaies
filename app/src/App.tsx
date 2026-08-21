@@ -7,39 +7,48 @@ import ListDetail from './screens/ListDetail';
 import InStore from './screens/InStore';
 import TripSummary from './screens/TripSummary';
 
-const H = 932, BEZEL = 26, PAD = 32;
+const W = 430, H = 932, BEZEL = 26, PAD = 24;
 
 /**
- * The phone keeps 1:1 pixels — scaling by a fractional factor resamples every
- * glyph and image, which is what made the earlier build look soft. When the
- * viewport is short the shell simply gets shorter and scrolls internally.
+ * The frame keeps the design's true 430x932 and is scaled only as far as the
+ * viewport demands, so the whole phone is always visible without page scroll.
+ * Scaling is a plain 2D transform with no will-change: Chrome re-rasterises
+ * text at the composited scale, which is what keeps it sharp.
  */
-function useDeviceHeight() {
-  const [h, setH] = useState(H);
+function useFitScale() {
+  const [k, setK] = useState(1);
   useEffect(() => {
-    const fit = () => setH(Math.max(560, Math.min(H, window.innerHeight - BEZEL - PAD)));
+    const fit = () => setK(Math.min(1,
+      (window.innerWidth  - PAD) / (W + BEZEL),
+      (window.innerHeight - PAD) / (H + BEZEL)));
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+      window.removeEventListener('orientationchange', fit);
+    };
   }, []);
-  return h;
+  return k;
 }
 
 export default function App() {
-  const h = useDeviceHeight();
+  const k = useFitScale();
   return (
     <Store>
       <HashRouter>
-        <div className="stage" style={{ ['--device-h' as string]: `${h}px` }}>
-          <Device>
-            <Routes>
-              <Route path="/" element={<Lists />} />
-              <Route path="/list/:id" element={<ListDetail />} />
-              <Route path="/list/:id/instore" element={<InStore />} />
-              <Route path="/list/:id/done" element={<TripSummary />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Device>
+        <div className="stage">
+          <div className="fit" style={{ width: W * k, height: H * k }}>
+            <Device style={{ transform: k === 1 ? undefined : `scale(${k})` }}>
+              <Routes>
+                <Route path="/" element={<Lists />} />
+                <Route path="/list/:id" element={<ListDetail />} />
+                <Route path="/list/:id/instore" element={<InStore />} />
+                <Route path="/list/:id/done" element={<TripSummary />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Device>
+          </div>
         </div>
       </HashRouter>
     </Store>

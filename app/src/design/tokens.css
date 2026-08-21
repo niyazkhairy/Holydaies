@@ -49,9 +49,17 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 /* ---------------- device shell ----------------
    The frame is the design's own 430x932. It is never scaled — scaling by a
    fractional factor resamples every glyph, which is what looked blurry. */
-.stage { min-height: 100%; display: grid; place-items: center; padding: 16px; }
+.stage { min-height: 100%; display: grid; place-items: center; padding: 12px; overflow: hidden; }
+
+/* `.fit` reserves the SCALED footprint so the page never scrolls; `.device`
+   keeps its true 430x932 geometry and is scaled from its top-left corner.
+   No will-change / 3D transform here — those pin the raster scale and are what
+   actually makes scaled text look soft. */
+.fit { position: relative; flex: 0 0 auto; }
+.fit > .device { position: absolute; top: 0; left: 0; transform-origin: top left; }
+
 .device {
-  width: min(var(--screen-w), 100vw);
+  width: var(--screen-w);
   height: var(--screen-h);
   background: var(--surface);
   border-radius: 44px;
@@ -87,11 +95,45 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   flex: 1; height: 42px; background: #fff; border-radius: var(--r-pill);
   display: flex; align-items: center; gap: 10px; padding: 0 16px;
 }
+/* ---------------- inputs ----------------
+   Placeholder is muted so it never reads as a filled value; focus is visible,
+   hover is felt, and a clear affordance appears once there is something to
+   clear. Touch targets stay at 40px+. */
+.searchfield {
+  position: relative;
+  transition: box-shadow .15s;
+  box-shadow: inset 0 0 0 1px transparent;
+}
+/* inside the pill the clear button takes the barcode's slot, so it flows
+   normally rather than being absolutely placed */
+.searchfield .inputclear { position: static; }
+.searchfield:hover { box-shadow: inset 0 0 0 1px var(--muted-2); }
+.searchfield:focus-within { box-shadow: 0 0 0 3px rgba(255,194,33,.9); }
 .searchfield .searchinput {
   flex: 1; border: 0; outline: 0; background: none;
   font-size: 15px; color: var(--ink); min-width: 0;
 }
-.searchfield .searchinput::placeholder { color: var(--ink); opacity: 1; }
+.searchfield .searchinput::placeholder { color: var(--ink-5); opacity: 1; }
+.searchfield .searchinput::-webkit-search-cancel-button { display: none; }
+
+.field {
+  transition: box-shadow .15s;
+}
+.field:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--ink-2); }
+.field:focus, .field:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 2px var(--wm-blue), 0 0 0 3px rgba(0,82,226,.18);
+}
+.field::placeholder { color: var(--ink-5); opacity: 1; }
+.field:disabled { background: var(--surface-2); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+
+.inputwrap { position: relative; display: flex; align-items: center; }
+.inputclear {
+  position: absolute; right: 10px; width: 22px; height: 22px; border-radius: 999px;
+  background: var(--ink-2); display: grid; place-items: center;
+}
+.inputclear:hover { background: var(--ink); }
+.inputhint { font-size: 11px; color: var(--ink-5); margin-top: 6px; }
 
 .cartbtn { position: relative; width: 40px; display: grid; justify-items: center; }
 .cartbadge {
@@ -169,6 +211,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .aisle-head strong { font-weight: 700; }
 
 .itemrow { display: flex; gap: 12px; padding: 14px 17px; border-bottom: 1px solid var(--line); }
+/* List view trades density for breathing room. */
+.itemrow.compact { padding: 20px 17px; }
 /* Picked items stay at full opacity — only the tick marks them done. */
 .itemrow.checked { opacity: 1; }
 .itemrow .thumb { width: 64px; height: 64px; object-fit: contain; flex: 0 0 64px; }

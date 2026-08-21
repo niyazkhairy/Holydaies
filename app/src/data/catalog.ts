@@ -110,7 +110,8 @@ export const PEOPLE: Person[] = [
 export const SHARE_LINK = 'walmart.com/s/wk8f2a';
 /** Artwork lifted from the design, at the sizes the design uses. */
 export const ART = {
-  sparky: '/products/777bb19ce223.png',   // Ask Sparky face, 24x24 in the design
+  sparky: '/products/23e704fccdbe.png',   // Ask Sparky, the transparent original
+                                          // (777bb19… is the same art with a white box baked in)
   pickup: '/products/4d54671e659c.png',   // the Pickup-or-delivery glyph, 23x23
 };
 

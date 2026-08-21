@@ -4,7 +4,6 @@ import { StatusBar, TabBar, CartButton, TickRing } from '../components/Chrome';
 import { FigIcon } from '../design/FigIcon';
 import { useStore, product, byAisle, type LineItem } from '../store';
 import { asset } from '../data/assets';
-import { hasFlashTag } from '../data/catalog';
 
 export default function InStore() {
   const { id } = useParams();
@@ -94,7 +93,8 @@ export default function InStore() {
               {done.map(i => {
                 const p = product(i.productId);
                 return (
-                  <li key={i.productId} className="itemrow" style={{ alignItems: 'center', padding: '12px 17px' }}>
+                  <li key={i.productId} className={`itemrow${card ? '' : ' compact'}`}
+                      style={{ alignItems: 'center' }}>
                     <Tick on label={`Uncheck ${p.keyword}`}
                           onClick={() => d({ t: 'toggleCheck', listId: list.id, productId: p.id })} />
                     {/* list view drops the thumbnail; card view keeps it */}
@@ -163,14 +163,15 @@ function CompactRow({ listId, item }: { listId: string; item: LineItem }) {
   const { d } = useStore();
   const p = product(item.productId);
   return (
-    <li className="itemrow" style={{ alignItems: 'center', padding: '13px 17px' }}>
+    <li className="itemrow compact" style={{ alignItems: 'center' }}>
       <Tick on={item.checked} label={`Check off ${p.keyword}`}
             onClick={() => d({ t: 'toggleCheck', listId, productId: p.id })} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13 }}>{p.title}</div>
         {item.addedBy && <div className="detail">{item.addedBy}</div>}
       </div>
-      {hasFlashTag(p.id) && <span className="flashtag">Flash tag</span>}
+      {/* list view carries a flash tag on every row */}
+      <span className="flashtag">Flash tag</span>
     </li>
   );
 }
