@@ -58,8 +58,9 @@ export default function ListDetail() {
         </div>
 
         <div style={{ padding: '18px 16px 6px', display: 'flex', gap: 14, alignItems: 'center' }}>
+          {/* design screen 04: 325x58, r4, 2px #2E2F33 while typing */}
           <input className="field" autoFocus value={query} placeholder="Add an item to your list"
-                 onChange={e => setQuery(e.target.value)} style={{ flex: 1, height: 40 }} />
+                 onChange={e => setQuery(e.target.value)} style={{ flex: 1, height: 58 }} />
           <button style={{ fontSize: 15 }} onClick={() => { setSearching(false); setQuery(''); }}>Cancel</button>
         </div>
         <div style={{ padding: '0 16px', fontSize: 11 }}>Enter an item, like “milk” or “coffee”.</div>
@@ -152,7 +153,7 @@ export default function ListDetail() {
             Add an item to your list
           </div>
           <button className="field" onClick={() => setSearching(true)}
-                  style={{ textAlign: 'left', color: 'var(--muted)', height: 40 }}>
+                  style={{ textAlign: 'left', color: 'var(--muted)', height: 42 }}>
             Add an item to your list
           </button>
           <div style={{ fontSize: 11, margin: '8px 0 2px' }}>Enter an item, like “milk” or “coffee”.</div>

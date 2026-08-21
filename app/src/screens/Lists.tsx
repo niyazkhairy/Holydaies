@@ -76,17 +76,22 @@ export default function Lists() {
 
       {creating && (
         <Sheet title="Create a new list" onClose={() => setCreating(false)}>
-          <label htmlFor="listname" style={{ fontSize: 13, fontWeight: 700 }}>Enter list name</label>
+          {/* design: 16px Bold #2E2F33 at x17,y757 */}
+          <label htmlFor="listname" style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink-2)' }}>
+            Enter list name
+          </label>
           <div style={{ position: 'relative', margin: '10px 0 22px' }}>
-            <input id="listname" className="field" autoFocus value={name}
+            <input id="listname" className="field field-lg" autoFocus value={name}
                    placeholder="Enter list name"
                    onChange={e => setName(e.target.value)}
                    onKeyDown={e => e.key === 'Enter' && create()} />
+            {/* design: 23px #2E2F33 disc at x378, centred in the field */}
             {name && (
               <button onClick={() => setName('')} aria-label="Clear"
-                style={{ position: 'absolute', right: 12, top: 11, width: 20, height: 20,
-                         borderRadius: 999, background: 'var(--ink-2)', display: 'grid', placeItems: 'center' }}>
-                <FigIcon name="close" size={10} color="#fff" />
+                style={{ position: 'absolute', right: 17, top: '50%', transform: 'translateY(-50%)',
+                         width: 23, height: 23, borderRadius: 999, background: 'var(--ink-2)',
+                         display: 'grid', placeItems: 'center' }}>
+                <FigIcon name="close" size={11} color="#fff" />
               </button>
             )}
           </div>
