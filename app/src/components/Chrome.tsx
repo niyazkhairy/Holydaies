@@ -1,47 +1,30 @@
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import * as I from './Icons';
+import { FigIcon } from '../design/FigIcon';
 import { useStore } from '../store';
 import { ART } from '../data/catalog';
+import { asset } from '../data/assets';
 
-export function StatusBar({ dark = false }: { dark?: boolean }) {
-  const c = dark ? 'var(--ink)' : '#fff';
+export function StatusBar() {
   return (
-    <div className={`statusbar${dark ? ' dark' : ''}`}>
+    <div className="statusbar">
       <span>9:30</span>
-      <span className="glyphs"><I.Signal color={c} /><I.Wifi color={c} /><I.Battery color={c} /></span>
-    </div>
-  );
-}
-
-/** The blue Walmart bar. `variant` mirrors the two header treatments in the design. */
-export function AppBar({ title, onBack, children, search = false }:
-  { title?: string; onBack?: () => void; children?: ReactNode; search?: boolean }) {
-  const { s } = useStore();
-  return (
-    <div className="appbar">
-      <StatusBar />
-      {search ? (
-        <div style={{ padding: '0 17px 10px' }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div style={{ flex: 1, height: 42, background: '#fff', borderRadius: 'var(--r-pill)',
-                          display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px' }}>
-              <I.Search size={19} color="var(--ink)" />
-              <span style={{ fontSize: 15, color: 'var(--ink)' }}>Search Walmart</span>
-              <I.Barcode size={20} color="var(--ink)" />
-            </div>
-            <CartButton />
-          </div>
-        </div>
-      ) : (
-        <div className="row">
-          {onBack && <button onClick={onBack} aria-label="Back"><I.ChevLeft size={22} color="#fff" /></button>}
-          <h1>{title}</h1>
-          <div style={{ marginLeft: 'auto' }}><CartButton /></div>
-        </div>
-      )}
-      {children}
-      <span style={{ position: 'absolute', left: -9999 }}>{s.cartCount}</span>
+      <span className="glyphs">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff" aria-hidden="true">
+          <rect x="0" y="8" width="3" height="4" rx="1" /><rect x="5" y="5.5" width="3" height="6.5" rx="1" />
+          <rect x="10" y="3" width="3" height="9" rx="1" /><rect x="15" y="0" width="3" height="12" rx="1" />
+        </svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#fff" strokeWidth="1.7"
+             strokeLinecap="round" aria-hidden="true">
+          <path d="M1 4.2a11 11 0 0 1 15 0M3.9 7.1a7 7 0 0 1 9.2 0" />
+          <circle cx="8.5" cy="10.2" r="1" fill="#fff" stroke="none" />
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none" aria-hidden="true">
+          <rect x=".6" y=".6" width="21" height="10.8" rx="3" stroke="#fff" strokeOpacity=".5" />
+          <rect x="2.2" y="2.2" width="17.8" height="7.6" rx="1.8" fill="#fff" />
+          <path d="M23 4.2v3.6a2 2 0 0 0 0-3.6Z" fill="#fff" fillOpacity=".5" />
+        </svg>
+      </span>
     </div>
   );
 }
@@ -49,46 +32,70 @@ export function AppBar({ title, onBack, children, search = false }:
 export function CartButton() {
   const { s } = useStore();
   return (
-    <div style={{ position: 'relative', width: 38, textAlign: 'center' }}>
-      <I.Cart size={26} />
-      <span style={{ position: 'absolute', top: -4, right: -2, minWidth: 17, height: 17, padding: '0 4px',
-                     borderRadius: 999, background: 'var(--wm-spark)', color: '#393939',
-                     fontSize: 12, fontWeight: 500, display: 'grid', placeItems: 'center' }}>
-        {s.cartCount}
-      </span>
-      <div style={{ fontSize: 9, fontWeight: 500, color: '#fff', marginTop: 1 }}>
-        ${s.cartTotal.toFixed(2)}
-      </div>
+    <div className="cartbtn">
+      <FigIcon name="cart" size={26} color="#fff" />
+      <span className="cartbadge">{s.cartCount}</span>
+      <span className="carttotal">${s.cartTotal.toFixed(2)}</span>
     </div>
   );
 }
 
-function SparkyFace({ size = 22 }: { size?: number; color?: string }) {
-  return <img src={ART.sparky} alt="" width={size} height={size} style={{ display: 'block' }} />;
+/** The blue bar: either the search treatment (01) or a titled bar with back. */
+export function AppBar({ title, onBack, search = false, children }: {
+  title?: string; onBack?: () => void; search?: boolean; children?: ReactNode;
+}) {
+  return (
+    <div className="appbar">
+      <StatusBar />
+      {search ? (
+        <div className="appbar-search">
+          <div className="searchfield">
+            <FigIcon name="search" size={19} color="var(--ink)" />
+            <span>Search Walmart</span>
+            <FigIcon name="barcode" size={20} color="var(--ink)" />
+          </div>
+          <CartButton />
+        </div>
+      ) : (
+        <div className="appbar-row">
+          {onBack && (
+            <button className="iconbtn" onClick={onBack} aria-label="Back">
+              <FigIcon name="back" size={17} color="#fff" />
+            </button>
+          )}
+          <h1>{title}</h1>
+          <CartButton />
+        </div>
+      )}
+      {children}
+    </div>
+  );
 }
 
 const TABS = [
-  { id: 'shop', label: 'Shop', Icon: I.NavShop },
-  { id: 'items', label: 'My Items', Icon: I.NavItems },
-  { id: 'sparky', label: 'Ask Sparky', Icon: SparkyFace },
-  { id: 'services', label: 'Services', Icon: I.NavServices },
-  { id: 'account', label: 'Account', Icon: I.NavAccount },
+  { id: 'shop', label: 'Shop', icon: 'nav-shop' },
+  { id: 'items', label: 'My Items', icon: 'nav-items' },
+  { id: 'sparky', label: 'Ask Sparky', icon: null },
+  { id: 'services', label: 'Services', icon: 'nav-services' },
+  { id: 'account', label: 'Account', icon: 'nav-account' },
 ];
 
 export function TabBar() {
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const active = pathname.startsWith('/shop') ? 'shop' : 'items';
+  const active = pathname === '/shop' ? 'shop' : 'items';
   return (
     <>
       <nav className="tabbar">
-        {TABS.map(({ id, label, Icon }) => {
-          const on = id === active;
+        {TABS.map(t => {
+          const on = t.id === active;
           return (
-            <button key={id} className={`tab${on ? ' active' : ''}`}
-                    onClick={() => nav(id === 'items' ? '/' : '/shop')}>
-              <Icon size={22} color={on ? 'var(--wm-blue-nav)' : 'var(--ink-3)'} />
-              <span>{label}</span>
+            <button key={t.id} className={`tab${on ? ' active' : ''}`}
+                    onClick={() => nav(t.id === 'items' ? '/' : '/shop')}>
+              {t.icon
+                ? <FigIcon name={t.icon} size={22} color={on ? 'var(--wm-blue-nav)' : 'var(--ink-3)'} />
+                : <img src={asset(ART.sparky)} alt="" width={22} height={22} />}
+              <span>{t.label}</span>
             </button>
           );
         })}
@@ -98,23 +105,34 @@ export function TabBar() {
   );
 }
 
-export function Sheet({ title, onClose, onBack, children }:
-  { title?: string; onClose: () => void; onBack?: () => void; children: ReactNode }) {
+export function Sheet({ title, onClose, onBack, children }: {
+  title?: string; onClose: () => void; onBack?: () => void; children: ReactNode;
+}) {
   return (
     <>
       <div className="scrimlayer" onClick={onClose} />
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
-        {onBack && <button className="back" onClick={onBack} aria-label="Back"><I.ChevLeft size={20} /></button>}
+        {onBack && (
+          <button className="sheet-back" onClick={onBack} aria-label="Back">
+            <FigIcon name="back" size={17} />
+          </button>
+        )}
         {title && <h2>{title}</h2>}
-        <button className="close" onClick={onClose} aria-label="Close"><I.Close size={17} /></button>
-        <div style={{ marginTop: 14 }}>{children}</div>
+        <button className="sheet-close" onClick={onClose} aria-label="Close">
+          <FigIcon name="close" size={16} />
+        </button>
+        <div className="sheet-body">{children}</div>
       </div>
     </>
   );
 }
 
-export function Avatar({ initial, colour, lg = false }: { initial: string; colour: string; lg?: boolean }) {
-  return <span className={`avatar${lg ? ' lg' : ''}`} style={{ background: colour }}>{initial}</span>;
+export function Avatar({ initial, colour, size = 22 }: { initial: string; colour: string; size?: number }) {
+  return (
+    <span className="avatar" style={{ background: colour, width: size, height: size, fontSize: size * 0.55 }}>
+      {initial}
+    </span>
+  );
 }
 
 export function Device({ children }: { children: ReactNode }) {
