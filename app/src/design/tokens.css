@@ -1,3 +1,11 @@
+/* Everyday Sans — Walmart's brand face, supplied by the user and converted to WOFF2. */
+@font-face { font-family: 'Everyday Sans'; font-style: normal; font-weight: 400;
+             font-display: block; src: url('/fonts/EverydaySans-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Everyday Sans'; font-style: normal; font-weight: 500;
+             font-display: block; src: url('/fonts/EverydaySans-Medium.woff2') format('woff2'); }
+@font-face { font-family: 'Everyday Sans'; font-style: normal; font-weight: 700;
+             font-display: block; src: url('/fonts/EverydaySans-Bold.woff2') format('woff2'); }
+
 /* Design tokens extracted verbatim from "Shop Toghether.fig" by decoding the
    fig-kiwi scene graph. Every colour below is a real fill value from the source. */
 :root {
@@ -132,3 +140,14 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .fit { position: relative; flex: 0 0 auto; }
 .fit > .device { transform-origin: top left; position: absolute; top: 0; left: 0; }
 .stage { padding: 12px; }
+
+/* ---------- screen transitions ---------- */
+@keyframes sheetIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes pushIn  { from { transform: translateX(14px); opacity: .35 } to { transform: none; opacity: 1 } }
+@keyframes popIn   { from { opacity: .5 } to { opacity: 1 } }
+.enter-sheet { animation: sheetIn .26s cubic-bezier(.2,.8,.25,1); }
+.enter-push  { animation: pushIn  .24s cubic-bezier(.2,.8,.25,1); }
+.enter-pop   { animation: popIn   .18s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .enter-sheet, .enter-push, .enter-pop { animation: none; }
+}

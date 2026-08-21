@@ -1,5 +1,6 @@
 """Extract a clean design spec (tree + absolute geometry + styles) from a decoded .fig scene."""
 import sys, json, pickle
+from geometry import geometry_paths
 
 def gid(g):
     return f"{g['sessionID']}:{g['localID']}" if g else None
@@ -37,6 +38,12 @@ def paint(p):
         h = img.get('hash') or ''
         o['hash'] = bytes(h).hex() if isinstance(h, list) else h
         o['scaleMode'] = p.get('imageScaleMode')
+        # Figma's "crop" fill carries a normalised source rect in this matrix:
+        # x from m02 (width m00), y from m12 (height m11)
+        tr = p.get('transform')
+        if tr:
+            o['crop'] = [round(tr.get('m00', 1), 6), round(tr.get('m02', 0), 6),
+                         round(tr.get('m11', 1), 6), round(tr.get('m12', 0), 6)]
     elif t and 'GRADIENT' in t:
         o['stops'] = [{'pos': round(s.get('position', 0), 4),
                        'hex': hexcolor(s['color']), 'a': round(s['color'].get('a', 1), 4)}
@@ -105,15 +112,34 @@ def text(n):
         'case': n.get('textCase'), 'deco': n.get('textDecoration'),
     }
 
-def walk(nid, nodes, kids, ox, oy, depth, out):
+IDENTITY = (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+
+
+def mat_of(n):
+    t = n.get('transform') or {}
+    return (t.get('m00', 1.0), t.get('m10', 0.0), t.get('m01', 0.0),
+            t.get('m11', 1.0), t.get('m02', 0.0), t.get('m12', 0.0))
+
+
+def mat_mul(p, c):
+    """Compose parent x child for CSS-order matrices (a, b, c, d, e, f)."""
+    pa, pb, pc, pd, pe, pf = p
+    ca, cb, cc, cd, ce, cf = c
+    return (pa * ca + pc * cb,       pb * ca + pd * cb,
+            pa * cc + pc * cd,       pb * cc + pd * cd,
+            pa * ce + pc * cf + pe,  pb * ce + pd * cf + pf)
+
+
+def walk(nid, nodes, kids, parent_m, depth, out, blobs):
     n = nodes[nid]
-    tr = n.get('transform') or {}
-    x, y = ox + tr.get('m02', 0), oy + tr.get('m12', 0)
+    m = mat_mul(parent_m, mat_of(n))
     sz = n.get('size') or {}
     rec = {'id': nid, 'name': n.get('name'), 'type': n.get('type'), 'depth': depth,
-           'x': round(x, 2), 'y': round(y, 2),
+           'x': round(m[4], 2), 'y': round(m[5], 2),
            'w': round(sz.get('x', 0), 2), 'h': round(sz.get('y', 0), 2),
            'visible': n.get('visible', True)}
+    if tuple(round(v, 5) for v in m[:4]) != IDENTITY[:4]:
+        rec['m'] = [round(v, 5) for v in m]
     st = style(n)
     if st:
         rec['style'] = st
@@ -122,13 +148,18 @@ def walk(nid, nodes, kids, ox, oy, depth, out):
         rec['text'] = tx
     if n.get('clipsContent') is not None:
         rec['clips'] = n['clipsContent']
+    if n.get('type') in ('VECTOR', 'BOOLEAN_OPERATION', 'STAR', 'REGULAR_POLYGON', 'LINE'):
+        g = geometry_paths(n, blobs)
+        if g:
+            rec['geom'] = g
     out.append(rec)
     for c in kids.get(nid, []):
-        walk(c, nodes, kids, x, y, depth + 1, out)
+        walk(c, nodes, kids, m, depth + 1, out, blobs)
 
 if __name__ == '__main__':
     S = sys.argv[1]
     scene = pickle.load(open(S + '/scene.pkl', 'rb'))
+    blobs = [bytes(b['bytes']) for b in (scene.get('blobs') or [])]
     nodes, kids = build(scene)
     canvas = [i for i, n in nodes.items() if n.get('type') == 'CANVAS']
     frames = []
@@ -139,11 +170,16 @@ if __name__ == '__main__':
     screens = []
     for f in frames:
         out = []
-        walk(f, nodes, kids, 0, 0, 0, out)
-        base = out[0]
+        walk(f, nodes, kids, IDENTITY, 0, out, blobs)
+        # capture the frame origin as scalars first — `out[0]` IS the frame, so
+        # reading through it inside the loop would zero itself on iteration one
+        ox, oy = out[0]['x'], out[0]['y']
         for r in out:
-            r['x'] = round(r['x'] - base['x'], 2)
-            r['y'] = round(r['y'] - base['y'], 2)
+            r['x'] = round(r['x'] - ox, 2)
+            r['y'] = round(r['y'] - oy, 2)
+            if 'm' in r:
+                r['m'][4] = round(r['m'][4] - ox, 2)
+                r['m'][5] = round(r['m'][5] - oy, 2)
         screens.append({'id': f, 'name': nodes[f].get('name'), 'nodes': out})
     screens.sort(key=lambda s: s['name'])
     json.dump(screens, open(S + '/design.json', 'w'), indent=None)

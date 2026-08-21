@@ -11,14 +11,19 @@ p.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
 p.on('requestfailed', r => errs.push('REQFAIL: ' + r.url().slice(0, 60)));
 await p.goto('file:///tmp/artifact-preview.html', { waitUntil: 'networkidle' });
 await p.waitForTimeout(600);
-console.log('lists rendered   :', await p.locator('button:has-text("Create a list")').isVisible());
-console.log('product img shown:', await p.locator('img[src^="data:image/png"]').first().isVisible());
+console.log('nodes rendered   :', await p.locator('[data-id]').count());
+console.log('text present     :', await p.locator('text=Create a list').first().isVisible());
+console.log('everyday sans    :', await p.evaluate(() => document.fonts.check('700 15px "Everyday Sans"')));
+console.log('inlined imagery  :', await p.evaluate(() =>
+  [...document.querySelectorAll('[data-id]')].filter(e => getComputedStyle(e).backgroundImage.startsWith('url("data:')).length));
 console.log('body h-scroll    :', await p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth));
 await p.screenshot({ path: 'shots/artifact-desktop.png' });
 // interact, to prove state works inside the single file
-await p.locator('button:has-text("Weekly Start")').first().click().catch(() => {});
-await p.locator('.device').click({ position: { x: 215, y: 700 } }).catch(() => {});
+// navigate via a real hotspot to prove interaction survives bundling
+const before = await p.locator('[data-id]').count();
+await p.locator('[aria-label="Open Weekly Start"]').click();
 await p.waitForTimeout(400);
+console.log('navigated        :', (await p.locator('[data-id]').count()) !== before || location.hash !== '');
 // narrow viewport
 const m = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 m.on('pageerror', e => errs.push('MOBILE PAGEERROR: ' + e.message));
