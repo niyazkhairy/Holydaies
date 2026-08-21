@@ -7,7 +7,10 @@ export type LineItem = { productId: string; qty: number; checked: boolean; added
 export type List = {
   id: string; name: string; items: LineItem[];
   createdAt: string; orders: number; spent: number;
-  favourite?: boolean; waitingOnYou?: boolean; subtitle?: string;
+  favourite?: boolean; subtitle?: string;
+  /** Items a collaborator added that still need your approval. */
+  pendingFrom?: string;
+  pendingItems?: string[];
 };
 export type SortKey = 'recent' | 'department' | 'low' | 'high';
 
@@ -24,14 +27,19 @@ const line = (productId: string, qty = 1, addedBy?: string): LineItem =>
   ({ productId, qty, checked: false, addedBy });
 
 /** Weekly Start carries the full 17-item catalogue across all eight aisles. */
-const weeklyItems: LineItem[] = PRODUCTS.map(pr =>
-  line(pr.id, pr.id === 'nos' ? 2 : 1, pr.addedBy));
+const PENDING = ['donuts', 'avocado'];
+
+/** Weekly Start holds two of Yasamin's additions back until you approve them. */
+const weeklyItems: LineItem[] = PRODUCTS
+  .filter(pr => !PENDING.includes(pr.id))
+  .map(pr => line(pr.id, pr.id === 'nos' ? 2 : 1, pr.addedBy));
 
 const initial: State = {
   lists: [
     {
       id: 'weekly', name: 'Weekly Start', createdAt: 'March 2024', orders: 14, spent: 412,
-      waitingOnYou: true, subtitle: 'Yasamin is waiting on you!', items: weeklyItems,
+      subtitle: 'Yasamin is waiting on you!', items: weeklyItems,
+      pendingFrom: 'Yasamin', pendingItems: PENDING,
     },
     {
       id: 'beverage', name: 'Beverage', createdAt: 'January 2024', orders: 6, spent: 128,
@@ -65,7 +73,9 @@ type Action =
   | { t: 'renameList'; listId: string; name: string }
   | { t: 'deleteList'; listId: string }
   | { t: 'setLayout'; layout: 'card' | 'list' }
-  | { t: 'resetTrip'; listId: string };
+  | { t: 'resetTrip'; listId: string }
+  | { t: 'approveRequest'; listId: string }
+  | { t: 'declineRequest'; listId: string };
 
 const price = (id: string) => byId(id).price;
 
@@ -108,6 +118,16 @@ function reducer(s: State, a: Action): State {
     case 'setLayout': return { ...s, instoreLayout: a.layout };
     case 'resetTrip':
       return mapList(s, a.listId, l => ({ ...l, items: l.items.map(i => ({ ...i, checked: false })) }));
+    case 'approveRequest':
+      return mapList(s, a.listId, l => ({
+        ...l,
+        items: [...(l.pendingItems ?? []).map(id => line(id, 1, `${l.pendingFrom} added, just now`)), ...l.items],
+        pendingFrom: undefined, pendingItems: undefined, subtitle: 'Delivery as soon as 6am',
+      }));
+    case 'declineRequest':
+      return mapList(s, a.listId, l => ({
+        ...l, pendingFrom: undefined, pendingItems: undefined, subtitle: 'Delivery as soon as 6am',
+      }));
     default: return s;
   }
 }

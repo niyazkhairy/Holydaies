@@ -58,10 +58,12 @@ const shot = (p, n) => p.locator('.device').screenshot({ path: `shots/v2-${n}.pn
 
   /* ---------- 3. 17 items from the new asset file ---------- */
   const rows = await p.locator('.itemrow').count();
-  ok('Weekly Start carries all 17 catalogue items', rows === 17, String(rows));
+  ok('Weekly Start shows 15 items with 2 awaiting approval', rows === 15, String(rows));
   ok('small detail lines are kept', (await p.locator('.detail').count()) > 10,
      String(await p.locator('.detail').count()));
-  ok('flash tags render', (await p.locator('.flashtag').count()) > 0);
+  // the design shows no flash tags on the list screen — only in the in-store list view
+  ok('list screen carries no flash tags (matches the design)',
+     (await p.locator('.flashtag').count()) === 0);
   await shot(p, '05-list');
 
   /* ---------- 4. sort actually sorts ---------- */
@@ -80,8 +82,9 @@ const shot = (p, n) => p.locator('.device').screenshot({ path: `shots/v2-${n}.pn
   await p.locator('button:has-text("Price low")').click();
   await p.locator('button:has-text("View results")').click();
   await p.waitForTimeout(280);
+  // avocado ($0.98) sits in Yasamin's pending request, so bananas is the cheapest on-list
   ok('Sort · Price low puts the cheapest first',
-     (await p.locator('.itemrow .price').first().innerText()) === '$0.98',
+     (await p.locator('.itemrow .price').first().innerText()) === '$1.97',
      await p.locator('.itemrow .price').first().innerText());
 
   /* ---------- 5. Department sort groups under sticky aisle headers ---------- */
@@ -127,15 +130,15 @@ const shot = (p, n) => p.locator('.device').screenshot({ path: `shots/v2-${n}.pn
 
   const before = await prog();
   const yBefore = await endTripY();
-  const openBefore = await p.locator('.itemrow:not(.checked)').count();
+  const openBefore = await p.locator('.itemrow').count();
 
   for (let i = 0; i < 5; i++) {
-    await p.locator('.tick.off').first().click();
+    await p.locator('.itemrow button[aria-pressed="false"]').first().click();
     await p.waitForTimeout(120);
   }
   const after = await prog();
   const yAfter = await endTripY();
-  const openAfter = await p.locator('.itemrow:not(.checked)').count();
+  const openAfter = await p.locator('.itemrow:has(button[aria-pressed="false"])').count();
 
   ok('checking items advances the counter', before !== after, `${before} -> ${after}`);
   ok('checked items leave the live list', openAfter === openBefore - 5, `${openBefore} -> ${openAfter}`);

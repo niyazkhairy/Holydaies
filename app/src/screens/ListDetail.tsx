@@ -377,7 +377,6 @@ function ItemRow({ listId, item }: { listId: string; item: LineItem }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span className="kw">{p.keyword}</span>
-          {p.flashTag && <span className="flashtag">Flash tag</span>}
           <span className="price">${p.price.toFixed(2)}</span>
         </div>
         <div className="title">{p.title}</div>

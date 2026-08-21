@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppBar, TabBar, Sheet, Avatar } from '../components/Chrome';
 import { FigIcon } from '../design/FigIcon';
 import { useStore, listTotals, product, type List } from '../store';
+import { ART } from '../data/catalog';
 import { asset } from '../data/assets';
 
 const SEGMENTS = ['Reorder', 'Lists', 'Registries'];
@@ -12,6 +13,7 @@ export default function Lists() {
   const nav = useNavigate();
   const [segment, setSegment] = useState('Lists');
   const [creating, setCreating] = useState(false);
+  const [request, setRequest] = useState<string | null>(null);
   const [name, setName] = useState('');
 
   const create = () => {
@@ -28,7 +30,7 @@ export default function Lists() {
     <div className="screen">
       <AppBar search>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 17px 14px', fontSize: 14 }}>
-          <FigIcon name="pin" size={17} color="#fff" />
+          <img src={asset(ART.pickup)} alt="" width={23} height={23} style={{ flex: '0 0 23px' }} />
           <strong style={{ fontWeight: 700 }}>Pickup or delivery?</strong>
           <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             4249 W Michigan Ave, Gle…
@@ -62,11 +64,15 @@ export default function Lists() {
         <div style={{ padding: '0 16px 24px', display: 'grid', gap: 14 }}>
           {s.lists.filter(l => l.favourite).map(l => <FavouriteCard key={l.id} list={l} />)}
           <ClaimedOffers />
-          {s.lists.filter(l => !l.favourite).map(l => <ListCard key={l.id} list={l} />)}
+          {s.lists.filter(l => !l.favourite).map(l => (
+            <ListCard key={l.id} list={l} onRequest={() => setRequest(l.id)} />
+          ))}
         </div>
       </div>
 
       <TabBar />
+
+      {request && <RequestSheet listId={request} onClose={() => setRequest(null)} />}
 
       {creating && (
         <Sheet title="Create a new list" onClose={() => setCreating(false)}>
@@ -95,7 +101,7 @@ function FavouriteCard({ list }: { list: List }) {
   const nav = useNavigate();
   return (
     <button onClick={() => nav(`/list/${list.id}`)}
-      style={{ background: 'var(--wm-blue-tint)', borderRadius: 'var(--r-card)', padding: '16px 18px', textAlign: 'left' }}>
+      className="card tinted" style={{ padding: '16px 18px', textAlign: 'left' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <FigIcon name="heart" size={19} color="var(--wm-blue)" />
         <span style={{ fontSize: 15, fontWeight: 700 }}>{list.name}</span>
@@ -110,7 +116,7 @@ function FavouriteCard({ list }: { list: List }) {
 
 function ClaimedOffers() {
   return (
-    <div style={{ background: 'var(--wm-blue-tint)', borderRadius: 'var(--r-card)', padding: '16px 18px' }}>
+    <div className="card tinted" style={{ padding: '16px 18px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 22, height: 22, borderRadius: 999, background: 'var(--wm-gold)',
                        display: 'grid', placeItems: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>$</span>
@@ -121,7 +127,7 @@ function ClaimedOffers() {
   );
 }
 
-function ListCard({ list }: { list: List }) {
+function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
   const { d } = useStore();
   const nav = useNavigate();
   const { est, savings } = listTotals(list);
@@ -129,16 +135,15 @@ function ListCard({ list }: { list: List }) {
   const extra = Math.max(0, list.items.length - 3);
 
   return (
-    <div style={{ borderRadius: 'var(--r-card)', overflow: 'hidden',
-                  boxShadow: `inset 0 0 0 1px ${list.waitingOnYou ? 'var(--wm-blue)' : 'var(--line)'}` }}>
-      <button onClick={() => nav(`/list/${list.id}`)}
+    <div className={`card${list.pendingFrom ? ' pending' : ''}`}>
+      <button onClick={() => (list.pendingFrom ? onRequest() : nav(`/list/${list.id}`))}
               style={{ display: 'block', width: '100%', textAlign: 'left', padding: '16px 18px 0' }}>
         <div style={{ display: 'flex', alignItems: 'baseline' }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>{list.name}</span>
           <span style={{ marginLeft: 'auto', fontSize: 12 }}>Est. total ${est.toFixed(2)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
-          <span style={{ fontSize: 9, color: list.waitingOnYou ? 'var(--wm-blue)' : 'var(--ink)' }}>
+          <span style={{ fontSize: 9, color: list.pendingFrom ? 'var(--wm-blue)' : 'var(--ink)' }}>
             {list.subtitle}
           </span>
           <span className="savings savings-pill" style={{ marginLeft: 'auto', fontSize: 12 }}>
@@ -164,5 +169,54 @@ function ListCard({ list }: { list: List }) {
                 onClick={() => d({ t: 'addAllToCart', listId: list.id })}>Add all to cart</button>
       </div>
     </div>
+  );
+}
+
+/** Yasamin's additions wait for approval before they join the list. */
+function RequestSheet({ listId, onClose }: { listId: string; onClose: () => void }) {
+  const { s, d } = useStore();
+  const nav = useNavigate();
+  const list = s.lists.find(l => l.id === listId);
+  if (!list?.pendingFrom) return null;
+  const who = list.pendingFrom;
+  const items = (list.pendingItems ?? []).map(product);
+
+  return (
+    <Sheet title={`${who}'s request`} onClose={onClose}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <Avatar initial={who[0]} colour="var(--avatar-y)" size={26} />
+        <span style={{ fontSize: 13, color: 'var(--ink-4)' }}>
+          {who} added {items.length} {items.length === 1 ? 'item' : 'items'} to {list.name}
+        </span>
+      </div>
+
+      <ul style={{ margin: '10px 0 18px' }}>
+        {items.map(p => (
+          <li key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center',
+                                  padding: '12px 2px', borderTop: '1px solid var(--line)' }}>
+            <img src={asset(p.img)} alt="" style={{ width: 44, height: 44, objectFit: 'contain' }} />
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-4)' }}>{p.keyword}</span>
+              <span style={{ display: 'block', fontSize: 13, marginTop: 3, lineHeight: 1.35 }}>{p.title}</span>
+            </span>
+            <span style={{ fontSize: 15, fontWeight: 700 }}>${p.price.toFixed(2)}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div style={{ display: 'flex', gap: 14 }}>
+        <button className="btn btn-outline" style={{ flex: 1, height: 42, fontSize: 15 }}
+                onClick={() => { d({ t: 'declineRequest', listId }); onClose(); }}>
+          Decline
+        </button>
+        <button className="btn btn-primary" style={{ flex: 1, height: 42, fontSize: 15 }}
+                onClick={() => { d({ t: 'approveRequest', listId }); onClose(); nav(`/list/${listId}`); }}>
+          Approve
+        </button>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ink-4)', textAlign: 'center', marginTop: 12 }}>
+        Approve so {who} can keep going.
+      </div>
+    </Sheet>
   );
 }

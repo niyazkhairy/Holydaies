@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { StatusBar, TabBar, CartButton } from '../components/Chrome';
+import { StatusBar, TabBar, CartButton, TickRing } from '../components/Chrome';
 import { FigIcon } from '../design/FigIcon';
 import { useStore, product, byAisle, type LineItem } from '../store';
 import { asset } from '../data/assets';
+import { hasFlashTag } from '../data/catalog';
 
 export default function InStore() {
   const { id } = useParams();
@@ -90,20 +91,22 @@ export default function InStore() {
               <span className="count">{done.length} items</span>
             </header>
             <ul style={{ paddingBottom: 24 }}>
-              {done.map(i => (
-                <li key={i.productId} className="itemrow checked" style={{ alignItems: 'center', padding: '11px 17px' }}>
-                  <button className="tick on" aria-label={`Uncheck ${product(i.productId).keyword}`}
-                          onClick={() => d({ t: 'toggleCheck', listId: list.id, productId: i.productId })}>
-                    <Check />
-                  </button>
-                  <img className="thumb" src={asset(product(i.productId).img)} alt=""
-                       style={{ width: 34, height: 34, flex: '0 0 34px' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, textDecoration: 'line-through' }}>{product(i.productId).keyword}</div>
-                    <div className="detail">You picked this up, just now</div>
-                  </div>
-                </li>
-              ))}
+              {done.map(i => {
+                const p = product(i.productId);
+                return (
+                  <li key={i.productId} className="itemrow" style={{ alignItems: 'center', padding: '12px 17px' }}>
+                    <Tick on label={`Uncheck ${p.keyword}`}
+                          onClick={() => d({ t: 'toggleCheck', listId: list.id, productId: p.id })} />
+                    {/* list view drops the thumbnail; card view keeps it */}
+                    {card && <img className="thumb" src={asset(p.img)} alt=""
+                                  style={{ width: 34, height: 34, flex: '0 0 34px' }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13 }}>{card ? p.keyword : p.title}</div>
+                      <div className="detail">You picked this up, just now</div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </>
         )}
@@ -112,11 +115,6 @@ export default function InStore() {
     </div>
   );
 }
-
-const Check = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.4"
-       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m20 6-11 11-5-5" /></svg>
-);
 
 function Toggle({ on, onClick, children, label }: {
   on: boolean; onClick: () => void; children: React.ReactNode; label: string;
@@ -132,8 +130,9 @@ function Toggle({ on, onClick, children, label }: {
 
 function Tick({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
   return (
-    <button className={`tick ${on ? 'on' : 'off'}`} aria-pressed={on} aria-label={label} onClick={onClick}>
-      {on && <Check />}
+    <button aria-pressed={on} aria-label={label} onClick={onClick}
+            style={{ flex: '0 0 22px', display: 'grid', placeItems: 'center' }}>
+      <TickRing checked={on} />
     </button>
   );
 }
@@ -149,7 +148,7 @@ function CardRow({ listId, item }: { listId: string; item: LineItem }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span className="kw">{p.keyword}</span>
-          {p.flashTag && <span className="flashtag">Flash tag</span>}
+          {/* Qty belongs to card view only; the design's list view has none. */}
           <span style={{ marginLeft: 'auto', fontSize: 13 }}>Qty: {item.qty}</span>
         </div>
         <div className="title">{p.title}</div>
@@ -171,8 +170,7 @@ function CompactRow({ listId, item }: { listId: string; item: LineItem }) {
         <div style={{ fontSize: 13 }}>{p.title}</div>
         {item.addedBy && <div className="detail">{item.addedBy}</div>}
       </div>
-      {p.flashTag && <span className="flashtag" style={{ whiteSpace: 'nowrap' }}>Flash tag</span>}
-      <span style={{ fontSize: 13, whiteSpace: 'nowrap' }}>Qty: {item.qty}</span>
+      {hasFlashTag(p.id) && <span className="flashtag">Flash tag</span>}
     </li>
   );
 }

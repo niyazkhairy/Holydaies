@@ -13,7 +13,6 @@ export type Product = {
   price: number;
   aisle: string;
   img: string;
-  flashTag?: boolean;
   addedBy?: string;
   detail?: string;        // the small secondary line, e.g. "Flavor: Zero Ultra"
 };
@@ -30,7 +29,7 @@ export const PRODUCTS: Product[] = [
   p('creamer-banana', 'pistachio creamer', 'Califia Farms Organic Banana Creme Almond Milk Coffee Creamer 25.4 Fluid Ounces',
     5.48, 'A34 · Dairy', '06664d681971', { detail: 'Flavor: Banana Creme · 25.4 fl oz' }),
   p('creamer-vanilla', 'creamer', 'Califia Farms Organic Vanilla Almond Milk Coffee Creamer 25.4 Fluid Ounces',
-    5.48, 'A34 · Dairy', '7e56a218b161', { flashTag: true, detail: 'Flavor: Vanilla · 25.4 fl oz' }),
+    5.48, 'A34 · Dairy', '7e56a218b161', { detail: 'Flavor: Vanilla · 25.4 fl oz' }),
 
   // A12 · Coffee
   p('folgers', 'coffee', 'Folgers Black Silk Ground Coffee, Dark Roast, 22.6 oz Canister',
@@ -44,13 +43,13 @@ export const PRODUCTS: Product[] = [
   p('apple-juice', 'apple juice', 'Great Value 100% Apple Juice, 96 fl oz',
     4.42, 'A17 · Juice', 'd843123b926c', { detail: '100% juice · 96 fl oz' }),
   p('grape-juice', 'grape juice', "Welch's 100% Grape Juice, Concord Grape, 64 fl oz Bottle",
-    5.68, 'A17 · Juice', '108f4a994ceb', { flashTag: true, detail: 'Concord Grape · 64 fl oz' }),
+    5.68, 'A17 · Juice', '108f4a994ceb', { detail: 'Concord Grape · 64 fl oz' }),
 
   // A27 · Soft Drink
   p('nos', 'nas sugar free', 'NOS Original, Energy Drink 16 fl oz', 2.28, 'A27 · Soft Drink', '2338876e7788',
     { detail: 'Flavor: Original · Total Count: 1' }),
   p('redbull', 'sugerfeee redbull', 'Red Bull Sugarfree Energy Drink, 8.4 fl. oz. Can, 80mg Caffeine, Taurine & B Vitamins',
-    2.68, 'A27 · Soft Drink', 'dff45ebef6f8', { flashTag: true, detail: 'Sugarfree · 8.4 fl oz' }),
+    2.68, 'A27 · Soft Drink', 'dff45ebef6f8', { detail: 'Sugarfree · 8.4 fl oz' }),
 
   // A32 · Frozen
   p('waffles', 'waffles', 'Great Value Buttermilk Waffles, 29.6 oz, 24 Count (Frozen)',
@@ -72,7 +71,7 @@ export const PRODUCTS: Product[] = [
   p('avocado', 'avocado', 'Fresh Hass Avocados, Each', 0.98, 'B6 · Dry Fresh & Bakery', 'caa9ef4c0eb3',
     { detail: 'Sold each' }),
   p('bananas', 'bananas', 'Marketside Fresh Organic Bananas, Bunch', 1.97, 'B6 · Dry Fresh & Bakery', '8e39919d9e6c',
-    { flashTag: true, detail: 'Organic · bunch' }),
+    { detail: 'Organic · bunch' }),
 ];
 
 /** Aisle order as laid out in the design. */
@@ -109,7 +108,19 @@ export const PEOPLE: Person[] = [
 ];
 
 export const SHARE_LINK = 'walmart.com/s/wk8f2a';
-export const ART = { sparky: '/products/777bb19ce223.png' };
+/** Artwork lifted from the design, at the sizes the design uses. */
+export const ART = {
+  sparky: '/products/777bb19ce223.png',   // Ask Sparky face, 24x24 in the design
+  pickup: '/products/4d54671e659c.png',   // the Pickup-or-delivery glyph, 23x23
+};
+
+/**
+ * The design shows a flash tag on exactly five rows — and only on screen 12,
+ * the in-store LIST view. Card view carries none. Keeping the set here rather
+ * than as a per-product flag keeps one source of truth.
+ */
+const FLASH_TAG_IDS = new Set(['milk', 'creamer-banana', 'creamer-vanilla', 'tropicana', 'waffles']);
+export const hasFlashTag = (id: string) => FLASH_TAG_IDS.has(id);
 
 /** The design prints -$12.45 against a $37.66 estimate. */
 export const SAVINGS_RATE = 12.45 / 37.66;

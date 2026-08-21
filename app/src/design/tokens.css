@@ -22,7 +22,12 @@
   --avatar-y: #2A8703; --avatar-f: #534AB7; --avatar-n: #0052E2;
 
   --r-pill: 600px; --r-card: 10px; --r-sheet: 17px; --r-sm: 4px;
-  --screen-w: 430px;
+  --screen-w: 430px; --screen-h: 932px;
+
+  /* Shadows read out of the design's effect list. */
+  --shadow-card: 0 2px 4px rgba(0,0,0,.1), 0 0 3px rgba(0,0,0,.1);
+  --shadow-bar:  0 -1px 4px rgba(0,0,0,.1);
+  --shadow-badge: 0 0 1px 1px #744518;
 
   --font: 'Everyday Sans', Inter, -apple-system, BlinkMacSystemFont,
           'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -42,15 +47,12 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 :focus-visible { outline: 2px solid var(--wm-blue); outline-offset: 2px; }
 
 /* ---------------- device shell ----------------
-   The phone is never scaled on a desktop-sized viewport: scaling by a
-   fractional factor resamples every glyph and is what made this look blurry.
-   Instead the shell keeps 1:1 and simply gets shorter, scrolling internally. */
+   The frame is the design's own 430x932. It is never scaled — scaling by a
+   fractional factor resamples every glyph, which is what looked blurry. */
 .stage { min-height: 100%; display: grid; place-items: center; padding: 16px; }
 .device {
-  /* Narrower viewports shrink the shell rather than scaling it: the layout is
-     flexbox throughout, so it reflows and every glyph stays at 1:1. */
   width: min(var(--screen-w), 100vw);
-  height: var(--device-h, 932px);
+  height: var(--screen-h);
   background: var(--surface);
   border-radius: 44px;
   overflow: hidden;
@@ -85,19 +87,26 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   flex: 1; height: 42px; background: #fff; border-radius: var(--r-pill);
   display: flex; align-items: center; gap: 10px; padding: 0 16px;
 }
-.searchfield span { flex: 1; font-size: 15px; color: var(--ink); }
+.searchfield .searchinput {
+  flex: 1; border: 0; outline: 0; background: none;
+  font-size: 15px; color: var(--ink); min-width: 0;
+}
+.searchfield .searchinput::placeholder { color: var(--ink); opacity: 1; }
 
 .cartbtn { position: relative; width: 40px; display: grid; justify-items: center; }
 .cartbadge {
   position: absolute; top: -5px; right: 0; min-width: 17px; height: 17px; padding: 0 4px;
   border-radius: 999px; background: var(--wm-spark); color: #393939;
   font-size: 12px; font-weight: 500; display: grid; place-items: center;
+  box-shadow: var(--shadow-badge);
 }
 .carttotal { font-size: 9px; font-weight: 500; color: #fff; margin-top: 2px; }
 
 /* ---------------- bottom nav ---------------- */
 .tabbar {
-  flex: 0 0 76px; display: flex; align-items: flex-start; justify-content: space-between;
+  box-shadow: var(--shadow-bar);
+  position: relative; z-index: 4;
+  flex: 0 0 74px; display: flex; align-items: flex-start; justify-content: space-between;
   padding: 9px 14px 0; background: var(--surface); border-top: 1px solid var(--line);
 }
 .tab { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 74px; }
@@ -160,7 +169,8 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .aisle-head strong { font-weight: 700; }
 
 .itemrow { display: flex; gap: 12px; padding: 14px 17px; border-bottom: 1px solid var(--line); }
-.itemrow.checked { opacity: .5; }
+/* Picked items stay at full opacity — only the tick marks them done. */
+.itemrow.checked { opacity: 1; }
 .itemrow .thumb { width: 64px; height: 64px; object-fit: contain; flex: 0 0 64px; }
 .itemrow .kw { font-size: 11px; color: var(--ink-4); }
 .itemrow .title { font-size: 13px; margin-top: 4px; line-height: 1.35; }
@@ -170,12 +180,6 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
                   color: var(--ink-4); margin-top: 6px; text-decoration: underline; }
 .flashtag { font-size: 11px; font-weight: 700; color: var(--wm-gold); }
 
-.tick {
-  width: 22px; height: 22px; border-radius: 999px; flex: 0 0 22px;
-  display: grid; place-items: center; transition: background .15s, box-shadow .15s;
-}
-.tick.off { box-shadow: inset 0 0 0 2px var(--wm-blue); }
-.tick.on  { background: var(--wm-blue); }
 
 .progressbar { height: 4px; background: rgba(255,255,255,.28); border-radius: 2px; margin: 14px 17px 0; }
 .progressbar > div { height: 100%; background: var(--wm-spark); border-radius: 2px; transition: width .3s ease-out; }
@@ -189,3 +193,18 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------------- cards ----------------
+   Design geometry: inset 16px, 397px wide, 10px radius, card shadow. */
+.card {
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.card.tinted { background: var(--wm-blue-tint); box-shadow: var(--shadow-card); }
+.card.pending { box-shadow: var(--shadow-card), inset 0 0 0 1px var(--wm-blue); }
+
+/* The unchecked tick is the design's selection-circle: 22px, 2px, dash 4/3. */
+.tickring { display: block; }
+.flashtag { font-size: 12px; color: var(--ink); text-decoration: underline; white-space: nowrap; }

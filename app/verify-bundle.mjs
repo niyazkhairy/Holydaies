@@ -23,9 +23,12 @@ console.log('inlined product art :', await p.evaluate(() =>
   [...document.images].filter(i => i.currentSrc.startsWith('data:')).length));
 console.log('design vector icons :', await p.locator('svg').count());
 
-// drive the real flow inside the bundle
-await p.locator('text=Weekly Start').first().click();
+// drive the real flow inside the bundle: the blue-stroked card asks first
+await p.locator('.card.pending').click();
 await p.waitForTimeout(400);
+console.log('approval request    :', await p.locator('text=Approve').first().isVisible());
+await p.locator('button:has-text("Approve")').click();
+await p.waitForTimeout(500);
 console.log('list opens, rows    :', await p.locator('.itemrow').count());
 await p.locator('button:has-text("Sort by")').click();
 await p.locator('button:has-text("Department")').click();

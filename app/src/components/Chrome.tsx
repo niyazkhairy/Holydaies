@@ -49,10 +49,11 @@ export function AppBar({ title, onBack, search = false, children }: {
       <StatusBar />
       {search ? (
         <div className="appbar-search">
+          {/* design: 346x42 pill, r21; magnifier 19px, label 15px Regular, barcode 26x18 */}
           <div className="searchfield">
             <FigIcon name="search" size={19} color="var(--ink)" />
-            <span>Search Walmart</span>
-            <FigIcon name="barcode" size={20} color="var(--ink)" />
+            <input className="searchinput" placeholder="Search Walmart" aria-label="Search Walmart" />
+            <FigIcon name="barcode" size={19} color="var(--ink)" />
           </div>
           <CartButton />
         </div>
@@ -94,7 +95,7 @@ export function TabBar() {
                     onClick={() => nav(t.id === 'items' ? '/' : '/shop')}>
               {t.icon
                 ? <FigIcon name={t.icon} size={22} color={on ? 'var(--wm-blue-nav)' : 'var(--ink-3)'} />
-                : <img src={asset(ART.sparky)} alt="" width={22} height={22} />}
+                : <img src={asset(ART.sparky)} alt="" width={24} height={24} />}
               <span>{t.label}</span>
             </button>
           );
@@ -132,6 +133,22 @@ export function Avatar({ initial, colour, size = 22 }: { initial: string; colour
     <span className="avatar" style={{ background: colour, width: size, height: size, fontSize: size * 0.55 }}>
       {initial}
     </span>
+  );
+}
+
+/** The design's selection-circle: 22px, 2px stroke #0052E2, dash pattern 4/3. */
+export function TickRing({ checked }: { checked: boolean }) {
+  return checked ? (
+    <svg className="tickring" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <circle cx="11" cy="11" r="11" fill="var(--wm-blue)" />
+      <path d="m6.2 11.3 3.2 3.2 6.4-6.4" fill="none" stroke="#fff" strokeWidth="2.2"
+            strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg className="tickring" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <circle cx="11" cy="11" r="10" fill="none" stroke="var(--wm-blue)" strokeWidth="2"
+              strokeDasharray="4 3" />
+    </svg>
   );
 }
 
