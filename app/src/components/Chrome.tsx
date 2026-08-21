@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FigIcon } from '../design/FigIcon';
 import { useStore } from '../store';
@@ -49,8 +49,12 @@ export function AppBar({ title, onBack, search = false, children }: {
       <StatusBar />
       {search ? (
         <div className="appbar-search">
-          {/* design: 346x42 pill, r21; magnifier 19px, 15px input, barcode 26x18 */}
-          <SearchField />
+          {/* design: 346x42 pill, r21; magnifier 19px, label 15px Regular, barcode 26x18 */}
+          <div className="searchfield">
+            <FigIcon name="search" size={19} color="var(--ink)" />
+            <input className="searchinput" placeholder="Search Walmart" aria-label="Search Walmart" />
+            <FigIcon name="barcode" size={19} color="var(--ink)" />
+          </div>
           <CartButton />
         </div>
       ) : (
@@ -66,34 +70,6 @@ export function AppBar({ title, onBack, search = false, children }: {
       )}
       {children}
     </div>
-  );
-}
-
-/** Search with the states a real field needs: hover, focus, clear, submit. */
-function SearchField() {
-  const [q, setQ] = useState('');
-  return (
-    <form className="searchfield" role="search" onSubmit={e => e.preventDefault()}>
-      <FigIcon name="search" size={19} color="var(--ink)" />
-      <input
-        className="searchinput"
-        type="search"
-        value={q}
-        onChange={e => setQ(e.target.value)}
-        placeholder="Search Walmart"
-        aria-label="Search Walmart"
-        autoComplete="off"
-        spellCheck={false}
-        enterKeyHint="search"
-      />
-      {q ? (
-        <button type="button" className="inputclear" aria-label="Clear search" onClick={() => setQ('')}>
-          <FigIcon name="close" size={10} color="#fff" />
-        </button>
-      ) : (
-        <FigIcon name="barcode" size={19} color="var(--ink)" />
-      )}
-    </form>
   );
 }
 

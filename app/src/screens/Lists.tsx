@@ -77,21 +77,18 @@ export default function Lists() {
       {creating && (
         <Sheet title="Create a new list" onClose={() => setCreating(false)}>
           <label htmlFor="listname" style={{ fontSize: 13, fontWeight: 700 }}>Enter list name</label>
-          <div className="inputwrap" style={{ margin: '10px 0 6px' }}>
+          <div style={{ position: 'relative', margin: '10px 0 22px' }}>
             <input id="listname" className="field" autoFocus value={name}
-                   placeholder="Enter list name" autoComplete="off" enterKeyHint="done"
-                   aria-describedby="listname-hint"
+                   placeholder="Enter list name"
                    onChange={e => setName(e.target.value)}
                    onKeyDown={e => e.key === 'Enter' && create()} />
             {name && (
-              <button type="button" className="inputclear" aria-label="Clear list name"
-                      onClick={() => setName('')}>
+              <button onClick={() => setName('')} aria-label="Clear"
+                style={{ position: 'absolute', right: 12, top: 11, width: 20, height: 20,
+                         borderRadius: 999, background: 'var(--ink-2)', display: 'grid', placeItems: 'center' }}>
                 <FigIcon name="close" size={10} color="#fff" />
               </button>
             )}
-          </div>
-          <div id="listname-hint" className="inputhint" style={{ marginBottom: 18 }}>
-            Give it a name you'll recognise later, like "Weekly Start".
           </div>
           <button className="btn btn-primary btn-block" disabled={!name.trim()} onClick={create}>Create</button>
         </Sheet>
