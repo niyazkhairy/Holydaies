@@ -149,7 +149,7 @@ function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
           {/* one step up the design's ramp (9 -> 11) so it is actually readable */}
-          <span style={{ fontSize: 11, color: 'var(--ink)' }}>
+          <span style={{ fontSize: 11, color: list.pendingFrom ? 'var(--wm-blue)' : 'var(--ink)' }}>
             <Subtitle text={list.subtitle ?? ''} name={list.pendingFrom} />
           </span>
           <span className="savings savings-pill" style={{ marginLeft: 'auto', fontSize: 12 }}>
@@ -178,14 +178,14 @@ function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
   );
 }
 
-/** Whoever is waiting on you carries the emphasis; the rest of the line stays plain. */
+/** Whoever is waiting on you is bolded; the line keeps its own colour throughout. */
 function Subtitle({ text, name }: { text: string; name?: string }) {
   if (!name || !text.includes(name)) return <>{text}</>;
   const [before, ...rest] = text.split(name);
   return (
     <>
       {before}
-      <strong style={{ fontWeight: 700, color: 'var(--wm-blue)' }}>{name}</strong>
+      <strong style={{ fontWeight: 700 }}>{name}</strong>
       {rest.join(name)}
     </>
   );
