@@ -158,7 +158,38 @@ const shot = (p, n) => p.locator('.device').screenshot({ path: `shots/v2-${n}.pn
   await p.waitForTimeout(320);
   const items = await p.locator('text=Items').first().isVisible();
   ok('trip summary opens', items);
+
+  // the per-shopper bars are computed from the checked items, so the counts
+  // have to add up to the Items stat and the widths to a full 100%
+  const bars = await p.evaluate(() => [...document.querySelectorAll('.scroll li')].map(li => {
+    const s = li.querySelectorAll('span');
+    return { units: parseInt(s[2].textContent, 10),
+             width: parseFloat(li.querySelector('div > div').style.width) };
+  }));
+  const stat = await p.evaluate(() => {
+    const el = [...document.querySelectorAll('div')]
+      .find(d => d.children.length === 2 && d.children[0].textContent === 'Items');
+    return el ? parseInt(el.children[1].textContent, 10) : NaN;
+  });
+  const sumUnits = bars.reduce((t, b) => t + b.units, 0);
+  const sumWidth = bars.reduce((t, b) => t + b.width, 0);
+  ok('summary bars are shared out from the checked items',
+     bars.length === 3 && sumUnits === stat && Math.abs(sumWidth - 100) < 0.01,
+     `${bars.map(b => b.units).join('+')}=${sumUnits} vs Items ${stat}, widths ${sumWidth.toFixed(1)}%`);
+
   await shot(p, '13-done');
+  await p.close();
+}
+
+/* ---------- 8b. an untouched trip charts nothing ---------- */
+{
+  const p = await b.newPage({ viewport: { width: 470, height: 990 }, deviceScaleFactor: 2 });
+  await p.goto(`${B}/#/list/weekly/done`, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(250);
+  const widths = await p.evaluate(() =>
+    [...document.querySelectorAll('.scroll li div > div')].map(d => d.style.width));
+  ok('nothing picked leaves every bar empty',
+     widths.length === 3 && widths.every(w => w === '0%'), widths.join(' '));
   await p.close();
 }
 

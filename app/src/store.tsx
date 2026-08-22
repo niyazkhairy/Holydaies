@@ -1,9 +1,14 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react';
 import {
-  PRODUCTS, PEOPLE, AISLE_ORDER, SAVINGS_RATE, byId, type Permission, type Product,
+  PRODUCTS, PEOPLE, AISLE_ORDER, SAVINGS_RATE, byId, ownerOf,
+  type Permission, type Product,
 } from './data/catalog';
 
-export type LineItem = { productId: string; qty: number; checked: boolean; addedBy?: string };
+export type LineItem = {
+  productId: string; qty: number; checked: boolean; addedBy?: string;
+  /** Person id of whoever put this on the list — drives the trip summary's bars. */
+  owner: string;
+};
 export type List = {
   id: string; name: string; items: LineItem[];
   createdAt: string; orders: number; spent: number;
@@ -23,8 +28,13 @@ export type State = {
   instoreLayout: 'card' | 'list';
 };
 
-const line = (productId: string, qty = 1, addedBy?: string): LineItem =>
-  ({ productId, qty, checked: false, addedBy });
+/** Items you add are yours; seeded and approved ones name their own owner. */
+const line = (productId: string, qty = 1, addedBy?: string, owner = 'you'): LineItem =>
+  ({ productId, qty, checked: false, addedBy, owner });
+
+/** Seeded rows carry the shared list's ownership; anything you add is yours. */
+const seed = (rows: [string, number?][]): LineItem[] =>
+  rows.map(([id, qty]) => line(id, qty ?? 1, undefined, ownerOf(id)));
 
 /** Weekly Start carries the full 17-item catalogue across all eight aisles. */
 const PENDING = ['donuts', 'avocado'];
@@ -32,7 +42,7 @@ const PENDING = ['donuts', 'avocado'];
 /** Weekly Start holds two of Yasamin's additions back until you approve them. */
 const weeklyItems: LineItem[] = PRODUCTS
   .filter(pr => !PENDING.includes(pr.id))
-  .map(pr => line(pr.id, pr.id === 'nos' ? 2 : 1, pr.addedBy));
+  .map(pr => line(pr.id, pr.id === 'nos' ? 2 : 1, pr.addedBy, ownerOf(pr.id)));
 
 const initial: State = {
   lists: [
@@ -44,12 +54,12 @@ const initial: State = {
     {
       id: 'beverage', name: 'Beverage', createdAt: 'January 2024', orders: 6, spent: 128,
       subtitle: 'Delivery as soon as 6am',
-      items: [line('nos', 2), line('redbull'), line('tropicana'), line('grape-juice'), line('apple-juice')],
+      items: seed([['nos', 2], ['redbull'], ['tropicana'], ['grape-juice'], ['apple-juice']]),
     },
     {
       id: 'niyaz', name: "Niyaz's List", createdAt: 'June 2023', orders: 21, spent: 640,
       favourite: true, subtitle: 'Favorites - 3 items',
-      items: [line('croissants'), line('donuts'), line('bananas')],
+      items: seed([['croissants'], ['donuts'], ['bananas']]),
     },
   ],
   cartCount: 0,
@@ -121,7 +131,8 @@ function reducer(s: State, a: Action): State {
     case 'approveRequest':
       return mapList(s, a.listId, l => ({
         ...l,
-        items: [...(l.pendingItems ?? []).map(id => line(id, 1, `${l.pendingFrom} added, just now`)), ...l.items],
+        items: [...(l.pendingItems ?? []).map(id =>
+          line(id, 1, `${l.pendingFrom} added, just now`, ownerOf(id))), ...l.items],
         pendingFrom: undefined, pendingItems: undefined, subtitle: 'Delivery as soon as 6am',
       }));
     case 'declineRequest':
@@ -177,6 +188,20 @@ export function sortItems(items: LineItem[], sort: SortKey): LineItem[] {
  */
 export const sinkChecked = (items: LineItem[]): LineItem[] =>
   [...items].sort((a, b) => Number(a.checked) - Number(b.checked));
+
+/**
+ * The picked haul broken down by shopper. Counts are real units off the
+ * checked items, and each share is measured against everything picked, so the
+ * summary's bars move as items are ticked and untucked during the trip.
+ */
+export function pickedByPerson(l: List, people: typeof PEOPLE) {
+  const picked = l.items.filter(i => i.checked);
+  const units = picked.reduce((t, i) => t + i.qty, 0);
+  return people.filter(p => p.signedIn).map(p => {
+    const mine = picked.filter(i => i.owner === p.id).reduce((t, i) => t + i.qty, 0);
+    return { ...p, units: mine, share: units ? mine / units : 0 };
+  });
+}
 
 /** Group into aisles for the in-store screens, preserving the design's order. */
 export function byAisle(items: LineItem[]): [string, LineItem[]][] {

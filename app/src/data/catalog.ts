@@ -107,6 +107,18 @@ export const PEOPLE: Person[] = [
   { id: 'visitor', name: 'Visitor', initial: 'V', colour: 'var(--muted)', permission: 'view', signedIn: false },
 ];
 
+/**
+ * Who put each item on the shared list. The trip summary charts the picked
+ * haul by owner, so this is what gives each shopper a bar. Anything not named
+ * here belongs to you — including whatever you add through the typeahead.
+ */
+export const OWNER_OF: Record<string, string> = {
+  milk: 'yasamin', 'creamer-banana': 'yasamin', 'creamer-vanilla': 'yasamin',
+  donuts: 'yasamin', avocado: 'yasamin',
+  folgers: 'farkhonda', jif: 'farkhonda', almonds: 'farkhonda', chips: 'farkhonda',
+};
+export const ownerOf = (productId: string) => OWNER_OF[productId] ?? 'you';
+
 export const SHARE_LINK = 'walmart.com/s/wk8f2a';
 /** Artwork lifted from the design, at the sizes the design uses. */
 export const ART = {

@@ -1,13 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { StatusBar, TabBar, Avatar, CartButton } from '../components/Chrome';
 import { FigIcon } from '../design/FigIcon';
-import { useStore, listTotals, product } from '../store';
-
-const SHOPPERS = [
-  { name: 'You',       initial: 'N', colour: 'var(--avatar-n)', share: .46 },
-  { name: 'Yasamin',   initial: 'Y', colour: 'var(--avatar-y)', share: .31 },
-  { name: 'Farkhonda', initial: 'F', colour: 'var(--avatar-f)', share: .23 },
-];
+import { useStore, listTotals, product, pickedByPerson } from '../store';
 
 export default function TripSummary() {
   const { id } = useParams();
@@ -22,6 +16,10 @@ export default function TripSummary() {
   const tax = +(subtotal * 0.0825).toFixed(2);
   const total = +(subtotal + tax).toFixed(2);
   const units = picked.reduce((t, i) => t + i.qty, 0);
+
+  // Who picked what, straight off the checked items — the bars grow and shrink
+  // as things are ticked in-store rather than sitting at a fixed split.
+  const shoppers = pickedByPerson(list, s.people);
 
   return (
     <div className="screen">
@@ -55,15 +53,18 @@ export default function TripSummary() {
         </div>
 
         <ul style={{ marginTop: 24 }}>
-          {SHOPPERS.map(p => (
-            <li key={p.name} style={{ marginBottom: 22 }}>
+          {shoppers.map(p => (
+            <li key={p.id} style={{ marginBottom: 22 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Avatar initial={p.initial} colour={p.colour} size={26} />
                 <span style={{ fontSize: 15 }}>{p.name}</span>
-                <span style={{ marginLeft: 'auto', fontSize: 15 }}>{Math.round(units * p.share)} items</span>
+                <span style={{ marginLeft: 'auto', fontSize: 15 }}>
+                  {p.units} {p.units === 1 ? 'item' : 'items'}
+                </span>
               </div>
               <div style={{ height: 5, background: 'var(--surface-2)', borderRadius: 3, marginTop: 9 }}>
-                <div style={{ height: '100%', width: `${p.share * 100}%`, background: p.colour, borderRadius: 3 }} />
+                <div style={{ height: '100%', width: `${p.share * 100}%`, background: p.colour,
+                              borderRadius: 3, transition: 'width .3s ease-out' }} />
               </div>
             </li>
           ))}
