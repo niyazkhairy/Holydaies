@@ -149,8 +149,8 @@ function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 5 }}>
           {/* one step up the design's ramp (9 -> 11) so it is actually readable */}
-          <span style={{ fontSize: 11, color: list.pendingFrom ? 'var(--wm-blue)' : 'var(--ink)' }}>
-            {list.subtitle}
+          <span style={{ fontSize: 11, color: 'var(--ink)' }}>
+            <Subtitle text={list.subtitle ?? ''} name={list.pendingFrom} />
           </span>
           <span className="savings savings-pill" style={{ marginLeft: 'auto', fontSize: 12 }}>
             -${savings.toFixed(2)}
@@ -175,6 +175,19 @@ function ListCard({ list, onRequest }: { list: List; onRequest: () => void }) {
                 onClick={() => d({ t: 'addAllToCart', listId: list.id })}>Add all to cart</button>
       </div>
     </div>
+  );
+}
+
+/** Whoever is waiting on you carries the emphasis; the rest of the line stays plain. */
+function Subtitle({ text, name }: { text: string; name?: string }) {
+  if (!name || !text.includes(name)) return <>{text}</>;
+  const [before, ...rest] = text.split(name);
+  return (
+    <>
+      {before}
+      <strong style={{ fontWeight: 700, color: 'var(--wm-blue)' }}>{name}</strong>
+      {rest.join(name)}
+    </>
   );
 }
 
