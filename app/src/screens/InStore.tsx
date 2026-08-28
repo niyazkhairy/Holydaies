@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { StatusBar, TabBar, CartButton, TickRing } from '../components/Chrome';
 import { FigIcon } from '../design/FigIcon';
@@ -148,29 +148,14 @@ function CardRow({ listId, item }: { listId: string; item: LineItem }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span className="kw">{p.keyword}</span>
-          <FlashTag keyword={p.keyword} />
+          {/* same tag as the list view, in the slot Qty used to hold */}
+          <span className="flashtag" style={{ marginLeft: 'auto' }}>Flash tag</span>
         </div>
         <div className="title">{p.title}</div>
         {p.detail && <div className="detail">{p.detail}</div>}
         {item.addedBy && <div className="detail">{item.addedBy}</div>}
       </div>
     </li>
-  );
-}
-
-/**
- * Card view's flash-deal action. Underlined like the list view's tag, but this
- * one is a real control — claiming it confirms in place.
- */
-function FlashTag({ keyword }: { keyword: string }) {
-  const [claimed, setClaimed] = useState(false);
-  return (
-    <button className="flashtag" aria-pressed={claimed}
-            aria-label={`${claimed ? 'Flash deal claimed on' : 'Claim the flash deal on'} ${keyword}`}
-            onClick={() => setClaimed(c => !c)}
-            style={{ marginLeft: 'auto' }}>
-      {claimed ? 'Flash tag claimed' : 'Flash tag'}
-    </button>
   );
 }
 
