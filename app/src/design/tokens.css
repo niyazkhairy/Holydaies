@@ -191,7 +191,6 @@ input:focus, input:focus-visible, .field:focus, .field:focus-visible { outline: 
 .itemrow .price { margin-left: auto; font-size: 15px; font-weight: 700; }
 .itemrow .aisle { display: inline-flex; align-items: center; gap: 5px; font-size: 11px;
                   color: var(--ink-4); margin-top: 6px; text-decoration: underline; }
-.flashtag { font-size: 11px; font-weight: 700; color: var(--wm-gold); }
 
 
 .progressbar { height: 4px; background: rgba(255,255,255,.28); border-radius: 2px; margin: 14px 17px 0; }
@@ -224,4 +223,6 @@ input:focus, input:focus-visible, .field:focus, .field:focus-visible { outline: 
 
 /* The unchecked tick is the design's selection-circle: 22px, 2px, dash 4/3. */
 .tickring { display: block; }
+/* Shared by the in-store list view's tag and card view's flash-deal action. */
 .flashtag { font-size: 12px; color: var(--ink); text-decoration: underline; white-space: nowrap; }
+.flashtag[aria-pressed="true"] { color: var(--green); font-weight: 700; }

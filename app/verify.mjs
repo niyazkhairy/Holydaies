@@ -148,6 +148,24 @@ const shot = (p, n) => p.locator('.device').screenshot({ path: `shots/v2-${n}.pn
      (await p.locator('text=Items Picked').count()) > 0);
   await shot(p, '11-picked');
 
+  // card view swaps the old Qty label for a flash-deal action on every row
+  {
+    // picked rows have moved to "Items Picked" and carry no tag, so count the live ones
+    const rows = await p.locator('.itemrow:has(button[aria-pressed="false"])').count();
+    const tags = await p.locator('.itemrow button.flashtag').count();
+    const qty = await p.locator('text=/Qty:/').count();
+    ok('card view carries a flash tag action on every live row and no Qty',
+       rows > 0 && tags === rows && qty === 0, `${tags}/${rows} tags, ${qty} Qty`);
+    const first = p.locator('.itemrow button.flashtag').first();
+    await first.click();
+    await p.waitForTimeout(120);
+    ok('claiming a flash tag confirms in place',
+       (await first.getAttribute('aria-pressed')) === 'true'
+       && (await first.innerText()).includes('claimed'));
+    await first.click();
+    await p.waitForTimeout(120);
+  }
+
   await p.locator('[aria-label="List view"]').click();
   await p.waitForTimeout(220);
   ok('layout toggle switches view', (await p.locator('.itemrow').first().boundingBox()).height < 90);
